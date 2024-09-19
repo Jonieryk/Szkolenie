@@ -1,37 +1,22 @@
 #!/bin/bash
 
+export HOME_DIR=/home/jonatan
+
+#Amount of backups to keep
+AMOUNT=8
+
 # password for the user
-password=$(cat .backup_password)
+password=$(cat $HOME_DIR/.backup_password)
 
 #SQL wordpress adtabase backup
-mysqldump -u backup -p$password --databases wordpress > $HOME/backups/wrdsql-`date "+%Y-%m-%d-%H-%M"`.sql
+mysqldump -u backup -p$password --databases wordpress > $HOME_DIR/backups/wrdsql-`date "+%Y-%m-%d-%H-%M"`.sql
 
 #Wordpress data backup
-echo "$password" | sudo -S tar -zcvf backups/wrdusr-`date "+%Y-%m-%d-%H-%M"`.tar.gz /usr/share/wordpress
+echo "$password" | sudo -S tar -zcvf $HOME_DIR/backups/wrdusr-`date "+%Y-%m-%d-%H-%M"`.tar.gz /usr/share/wordpress
 
-#Variable with all sql backups with error handling if there are no matching files
-db_backup_files=($(ls -t $HOME/backups/wrdsql* 2> /dev/null))
+# Check if there are more than 8 SQL backups and delete all but the newest 8
+find $HOME_DIR/backups -name 'wrdsq*' -type f | sort | head -n -$AMOUNT | xargs -r rm
 
-# Check if there are more than 8 SQL backups
-if [ ${#db_backup_files[@]} -gt 8 ]; then
-    # Calculate how many SQL backups to delete
-    db_files_to_delete=(${db_backup_files[@]:8})  # Files from index 8 onwards
+# Check if there are more than 8 usr backups and delete all but the newest 8
+find $HOME_DIR/backups -name 'wrdusr*' -type f | sort | head -n -$AMOUNT | xargs -r rm -f
 
-    # Delete the old SQL backups
-    for file in "${db_files_to_delete[@]}"; do
-        rm "$file"
-    done
-fi
-
-#Variable with all /usr backups
-db_backup_files=($(ls -t $HOME/backups/wrdusr* 2> /dev/null))
-# Check if there are more than 8 /usr backups
-if [ ${#db_backup_files[@]} -gt 8 ]; then
-    # Calculate how many /usr backups to delete
-    db_files_to_delete=(${db_backup_files[@]:8})  # Files from index 8 onwards
-
-    # Delete the old /usr backups
-    for file in "${db_files_to_delete[@]}"; do
-        rm -f "$file"
-    done
-fi
