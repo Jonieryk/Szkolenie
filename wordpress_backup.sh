@@ -14,9 +14,9 @@ mysqldump -u backup -p$password --databases wordpress > $HOME_DIR/backups/wrdsql
 #Wordpress data backup
 echo "$password" | sudo -S tar -zcvf $HOME_DIR/backups/wrdusr-`date "+%Y-%m-%d-%H-%M"`.tar.gz /usr/share/wordpress
 
-# Check if there are more than 8 SQL backups and delete all but the newest 8
+# Check if there are more than the specified amount of SQL backups and delete the old ones
 find $HOME_DIR/backups -name 'wrdsq*' -type f | sort | head -n -$AMOUNT | xargs -r rm
 
-# Check if there are more than 8 usr backups and delete all but the newest 8
+# Check if there are more than the specified amount of usr backups and delete the old ones
 find $HOME_DIR/backups -name 'wrdusr*' -type f | sort | head -n -$AMOUNT | xargs -r rm -f
 
